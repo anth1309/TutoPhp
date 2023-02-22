@@ -1,0 +1,17 @@
+{
+    "name": "chambon/tuto-php",
+    "autoload": {
+        "psr-4": {
+            "Chambon\\TutoPhp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "anthony chambon",
+            "email": "acdf-ac.ccdf@hotmail.fr"
+        }
+    ],
+    "require-dev": {
+        "symfony/var-dumper": "^6.2"
+    }
+}
