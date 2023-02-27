@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "includes/connect.php";
 $sql = "SELECT * FROM `articles` ORDER BY `created_at` ASC ";
 //on execute la requete

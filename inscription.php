@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 if (!empty($_POST)) {
 
     if (
@@ -9,30 +9,62 @@ if (!empty($_POST)) {
         $nick = htmlspecialchars($_POST["nick"]);
         $name = htmlspecialchars($_POST["name"]);
         $firstname = htmlspecialchars($_POST["firstname"]);
-        if (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
-            die("Le courriel n est pas valide");
+        $_SESSION["error"] = [];
+        if (strlen($nick) < 4) {
+            $_SESSION["error"][] = "le pseudo doit faire plus de 4 caractéres";
         }
-        //$email = $_POST["email"];
-        $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
 
+        if (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
+            $_SESSION["error"][] = "le courriel est invalide";
+        }
 
-        require_once "includes/connect.php";
-        $sql = "INSERT INTO `users` (`email`,`roles`,`password`,`nick`,`firstname`,`name`) VALUE (:email, '[\"ROLE_USER\"]','$password',:nick,:firstname,:name)";
-        $query = $db->prepare($sql);
-        $query->bindValue(":email", $_POST["email"], PDO::PARAM_STR);
-        $query->bindValue(":nick", $nick, PDO::PARAM_STR);
-        $query->bindValue(":firstname", $firstname, PDO::PARAM_STR);
-        $query->bindValue(":name", $name, PDO::PARAM_STR);
-        $query->execute();
+        if ($_SESSION["error"] === []) {
+
+            $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+
+            require_once "includes/connect.php";
+            $sql = "INSERT INTO `users` (`email`,`roles`,`password`,`nick`,`firstname`,`name`) VALUE (:email, '[\"ROLE_USER\"]','$password',:nick,:firstname,:name)";
+            $query = $db->prepare($sql);
+            $query->bindValue(":email", $_POST["email"], PDO::PARAM_STR);
+            $query->bindValue(":nick", $nick, PDO::PARAM_STR);
+            $query->bindValue(":firstname", $firstname, PDO::PARAM_STR);
+            $query->bindValue(":name", $name, PDO::PARAM_STR);
+            $query->execute();
+
+            //recuperation de l id du new user
+            $id = $db->lastInsertId();
+
+            session_start();
+            $_SESSION["user"] = [
+                "id" => $id,
+                "pseudo" => $nick,
+                "email" => $_POST["email"],
+                "rol" => ["ROLE_USER"]
+            ];
+
+            header("location: profil.php");
+        }
     } else {
-        die("le formulaire n est pas complet");
+        $_SESSION["error"] = ["Le formulaire est incomplet"];
     }
 }
-
 include_once "includes/header.php";
 include_once "includes/navbar.php"; ?>
 
 <h1>Inscription</h1>
+
+<?php
+if (isset($_SESSION["error"])) {
+    foreach ($_SESSION["error"] as $message) {
+?>
+        <p><?= $message ?></p>
+<?php
+    }
+    unset($_SESSION["error"]);
+}
+?>
+
+
 <form method="post">
     <main class="container">
         <section class="row">
@@ -51,7 +83,7 @@ include_once "includes/navbar.php"; ?>
                 </div>
                 <div>
                     <label for="email" class="form-label">Courriel</label>
-                    <input type="email" name="email" id="email" placeholder="exemple@gmail.com" class="form-control my-3">
+                    <input type="text" name="email" id="email" placeholder="exemple@gmail.com" class="form-control my-3">
                 </div>
                 <div>
                     <label for="password" class="form-label">Mot de passe</label>

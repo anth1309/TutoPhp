@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "includes/connect.php";
 //on verifie si on a un id
 if (!isset($_GET["id"]) || empty($_GET["id"])) {
